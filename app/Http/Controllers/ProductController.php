@@ -7,6 +7,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\DB;
 use App\Store;
 use App\Product;
+use Illuminate\Support\Facades\Mail;
 
 
 class ProductController extends Controller
@@ -61,11 +62,18 @@ class ProductController extends Controller
 
         DB::beginTransaction();
         try {
-            Product::create([
+            $product = Product::create([
                 'name' => $request->name,
                 'value' => $request->value,
                 'store_id' => $request->store_id,
             ]);
+
+            $emails = [$product->store->email,];
+            Mail::send('emails.product_new', [], function($m) use ($emails)
+            {
+                $m->from('painel.gerencial@smipreditiva.com.br', 'SMTP para testes');
+                $m->to($emails)->subject('Solluti Testes API - Novo produto cadastrado');
+            });
 
             DB::commit();
             return response([
@@ -102,11 +110,18 @@ class ProductController extends Controller
     {
         DB::beginTransaction();
         try {
-            Product::where('id', $id)->update([
+            $product = Product::where('id', $id)->update([
                 'name' => $request->name,
                 'value' =>  $request->value,
                 'active' => $request->active,
             ]);
+
+            $emails = [$product->store->email,];
+            Mail::send('emails.product_update', [], function($m) use ($emails)
+            {
+                $m->from('painel.gerencial@smipreditiva.com.br', 'SMTP para testes');
+                $m->to($emails)->subject('Solluti Testes API - Produto aletarado');
+            });
 
             DB::commit();
             return response([
@@ -126,7 +141,14 @@ class ProductController extends Controller
     {
         DB::beginTransaction();
         try {
-            Product::where('id', $id)->delete();
+            $product = Product::where('id', $id)->delete();
+
+            $emails = [$product->store->email,];
+            Mail::send('emails.product_update', [], function($m) use ($emails)
+            {
+                $m->from('painel.gerencial@smipreditiva.com.br', 'SMTP para testes');
+                $m->to($emails)->subject('Solluti Testes API - Produto aletarado');
+            });
 
             DB::commit();
             return response([
